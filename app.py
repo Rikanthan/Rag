@@ -20,6 +20,9 @@ load_dotenv()
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+print(GOOGLE_API_KEY)
 
 # --- Streamlit UI ---
 st.title("📚 RAG App: Chroma (local) / Supabase (prod)")
@@ -38,7 +41,7 @@ if uploadedfile:
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = splitter.split_documents(docs)
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 
     # --- Choose vector store based on environment ---
     if ENVIRONMENT == "local":
