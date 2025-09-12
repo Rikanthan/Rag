@@ -9,7 +9,8 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI, GoogleGenerativeAIError
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from google.common import GoogleGenerativeAIError
 
 # Vector stores
 from langchain.vectorstores import Chroma
@@ -21,7 +22,7 @@ from google.api_core.exceptions import ResourceExhausted, InvalidArgument
 
 # --- Config ---
 load_dotenv()
-ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
