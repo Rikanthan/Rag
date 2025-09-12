@@ -9,3 +9,7 @@ certifi
 psycopg2-binary
 sqlalchemy
 langchain_google_genai
+pypdf
+pdf2image
+pymupdf
+pytesseract
