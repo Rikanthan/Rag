@@ -1,0 +1,11 @@
+streamlit
+dotenv
+langchain
+langchain-community
+chromadb
+supabase
+httpx
+certifi
+psycopg2-binary
+sqlalchemy
+langchain_google_genai
