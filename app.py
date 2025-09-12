@@ -10,8 +10,6 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from google.common import GoogleGenerativeAIError
-
 # Vector stores
 from langchain.vectorstores import Chroma
 from langchain_community.vectorstores import SupabaseVectorStore
@@ -45,9 +43,6 @@ def ensure_event_loop():
 def safe_add_docs(vectorstore, docs):
     try:
         vectorstore.add_documents(docs)
-    except GoogleGenerativeAIError as e:
-        st.error(f"❌ Gemini error: {e}")
-        raise
     except ResourceExhausted as e:
         st.warning(f"⚠️ Rate limit exceeded, retrying: {e}")
         raise
