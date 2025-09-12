@@ -38,7 +38,7 @@ if uploadedfile:
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = splitter.split_documents(docs)
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
     # --- Choose vector store based on environment ---
     if ENVIRONMENT == "local":
