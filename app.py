@@ -20,8 +20,6 @@ load_dotenv()
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 # --- Streamlit UI ---
 st.title("📚 RAG App: Chroma (local) / Supabase (prod)")
