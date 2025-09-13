@@ -14,6 +14,7 @@ from langchain_google_genai import (
     GoogleGenerativeAIEmbeddings,
     ChatGoogleGenerativeAI,
 )
+from supabase import create_client
 
 from langchain_google_genai._common import GoogleGenerativeAIError
 from langchain_community.vectorstores import SupabaseVectorStore
