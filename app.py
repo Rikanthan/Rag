@@ -11,10 +11,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from supabase import create_client
 from langchain_community.vectorstores import SupabaseVectorStore
 
-from utils.db_functions import (
-    create_supabase_table_and_function,
-    file_already_indexed_supabase,
-)
+from utils.db_functions import file_already_indexed_supabase
 
 # --- Config ---
 load_dotenv()
@@ -66,10 +63,9 @@ if uploadedfile:
     # Step 4: Init embeddings
     embeddings = init_embeddings()
 
-    # Step 5: Supabase storage
+    # Step 5: Supabase storage (pre-created "documents" table)
     supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
     table_name = "documents"
-    create_supabase_table_and_function(supabase_client, table_name)
 
     if file_already_indexed_supabase(supabase_client, table_name, file_hash):
         st.warning(f"⚠️ File already indexed in {table_name}, skipping insert.")
