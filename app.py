@@ -15,7 +15,7 @@ from langchain_google_genai import (
     ChatGoogleGenerativeAI,
 )
 
-from langchain_google_genai.common import GoogleGenerativeAIError
+from langchain_google_genai._common import GoogleGenerativeAIError
 from langchain_community.vectorstores import SupabaseVectorStore
 
 
