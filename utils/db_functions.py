@@ -1,21 +1,8 @@
-from supabase import create_client
-from langchain_community.vectorstores import SupabaseVectorStore
 import streamlit as st
 
-def get_new_supabase_table(client, base_name="document"):
-    """Find next available Supabase table like document1, document2..."""
-    i = 1
-    while True:
-        table_name = f"{base_name}{i}"
-        try:
-            client.table(table_name).select("id").limit(1).execute()
-            i += 1
-        except Exception:
-            return table_name
 
-
-def create_supabase_table_and_function(client, table_name):
-    """Create table + match function for Supabase"""
+def create_supabase_table_and_function(client, table_name="documents"):
+    """Create documents table + match function for Supabase"""
     ddl = f"""
     create table if not exists {table_name} (
         id uuid primary key default gen_random_uuid(),
@@ -62,4 +49,3 @@ def file_already_indexed_supabase(client, table_name, file_hash):
         return len(res.data) > 0
     except Exception:
         return False
-
