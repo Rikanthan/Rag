@@ -4,6 +4,7 @@ import time
 import hashlib
 import streamlit as st
 from dotenv import load_dotenv
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -11,7 +12,10 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from supabase import create_client
 from langchain_community.vectorstores import SupabaseVectorStore
 
-from utils.db_functions import file_already_indexed_supabase
+from utils.db_functions import (
+    file_already_indexed_supabase,
+    get_existing_chunks_for_file,
+)
 
 # --- Config ---
 load_dotenv()
@@ -21,7 +25,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 # --- Streamlit UI ---
-st.title("📚 RAG App: Supabase Vector Store")
+st.title("📚 RAG App: Supabase Vector Store (Resumable)")
 uploadedfile = st.file_uploader("Upload a PDF file", type=["pdf"])
 
 
@@ -37,6 +41,12 @@ def compute_file_hash(file_path):
 
 def init_embeddings():
     return GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+
+
+@retry(wait=wait_exponential(multiplier=1, min=2, max=30), stop=stop_after_attempt(5))
+def safe_add_docs(vectorstore, docs):
+    """Add documents with retries on failure"""
+    vectorstore.add_documents(docs)
 
 
 # --- Main Flow ---
@@ -55,10 +65,11 @@ if uploadedfile:
     chunks = splitter.split_documents(docs)
     st.info(f"✅ Split into {len(chunks)} chunks")
 
-    # Step 3: Compute file hash
+    # Step 3: Compute file hash + add metadata
     file_hash = compute_file_hash(tmp_path)
-    for chunk in chunks:
+    for idx, chunk in enumerate(chunks):
         chunk.metadata["file_hash"] = file_hash
+        chunk.metadata["chunk_index"] = idx
 
     # Step 4: Init embeddings
     embeddings = init_embeddings()
@@ -67,8 +78,11 @@ if uploadedfile:
     supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
     table_name = "documents"
 
-    if file_already_indexed_supabase(supabase_client, table_name, file_hash):
-        st.warning(f"⚠️ File already indexed in {table_name}, skipping insert.")
+    existing_chunks = get_existing_chunks_for_file(supabase_client, table_name, file_hash)
+    missing_chunks = [c for c in chunks if str(c.metadata["chunk_index"]) not in existing_chunks]
+
+    if not missing_chunks:
+        st.warning(f"⚠️ All chunks already exist for this file in {table_name}, skipping insert.")
     else:
         vectorstore = SupabaseVectorStore(
             client=supabase_client,
@@ -78,15 +92,15 @@ if uploadedfile:
         )
 
         batch_size = 20
-        for i in range(0, len(chunks), batch_size):
-            batch = chunks[i : i + batch_size]
+        for i in range(0, len(missing_chunks), batch_size):
+            batch = missing_chunks[i : i + batch_size]
             with st.spinner(f"🔄 Uploading batch {i//batch_size + 1} to Supabase..."):
                 try:
-                    vectorstore.add_documents(batch)
+                    safe_add_docs(vectorstore, batch)
                 except Exception as e:
-                    st.error(f"❌ Supabase batch {i//batch_size + 1} failed: {e}")
-                time.sleep(2)
+                    st.error(f"❌ Failed after retries: {e}")
+            time.sleep(1)
 
-        st.success(f"✅ Documents stored in Supabase table '{table_name}'")
+        st.success(f"✅ Stored {len(missing_chunks)} new chunks in Supabase table '{table_name}'")
 else:
     st.info("⬆️ Please upload a PDF to start.")
